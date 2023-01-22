@@ -27,7 +27,9 @@ const PostWidget = ({
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token);
   const loggedInUserId = useSelector((state) => state.user._id);
-  const isLiked = Boolean(likes[loggedInUserId]);
+
+  let isLiked;
+
   const likeCount = Object.keys(likes).length;
 
   const { palette } = useTheme();
@@ -35,13 +37,23 @@ const PostWidget = ({
   const primary = palette.primary.main;
 
   const patchLike = async () => {
-    const response = await fetch(`http://localhost:3001/posts/${postId}/like`, {
+    isLiked = await fetch(`http://localhost:3001/posts/is-liked/${postId}`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ userId: loggedInUserId }),
+    });
+    isLiked = Boolean(await isLiked.json());
+
+    const response = await fetch(`http://localhost:3001/posts/${postId}/like`, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId: loggedInUserId, isLiked }),
     });
     const updatedPost = await response.json();
     dispatch(setPost({ post: updatedPost }));

@@ -50,12 +50,14 @@ export const getUserPosts = async (req, res) => {
 export const likePost = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.body;
+    const { userId, isLiked } = req.body;
     const post = await Post.findById(id);
-
-    post.likes.indexOf(userId) === -1
-      ? post.likes.push(userId)
-      : post.likes.pop(userId);
+    console.log(isLiked);
+    if (!isLiked) {
+      post.likes.push(userId);
+    } else if (isLiked) {
+      post.likes.pop(userId);
+    }
 
     const updatedPost = await Post.findByIdAndUpdate(
       id,
@@ -64,6 +66,18 @@ export const likePost = async (req, res) => {
     );
 
     res.status(200).json(updatedPost);
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+};
+
+export const isLiked = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+    const post = await Post.findById(id);
+    const isLiked = post.likes.indexOf(userId) === -1 ? false : true;
+    res.status(200).json(isLiked);
   } catch (err) {
     res.status(404).json({ message: err.message });
   }
